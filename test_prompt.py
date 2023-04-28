@@ -1,20 +1,27 @@
 import json
 import random
 
-from utils.template_utils import parse_bracket_template
+from templates import PROMPT_TEMPLATES
+from utils.template_utils import PromptBuilder
+from utils.data_utils import DataParser
 
-if __name__ == '__main__':
-    data = json.load(open('data/emoji.json'))
-    
+def test_prompt(dataset_name):
+    data = json.load(open('data/%s.json' % dataset_name, 'r'))
     examples = data['examples']
+
     # Testing the prompt in a one-shot setting
-    ex, question = random.sample(examples, 2)
-    template = 'Guess popular movies from their emoji descriptions. What movie does this emoji describe? {emoji} A.  {choiceA} B.  {choiceB} C.  {choiceC} D.  {choiceD} E.  {choiceE}'
-    params = {
-        'emoji': '👧🐟🐠🐡',
-        'choiceA': 'Finding Nemo',
-        'choiceB': 'the wolf of wall street',
-        'choiceC': 'se7en',
-        'choiceD': 'the shining',
-        'choiceE': 'mr. Smith goes to washington'
-    }
+    template, fewshot_template = PROMPT_TEMPLATES[dataset_name]['zero-shot'], PROMPT_TEMPLATES[dataset_name]['few-shot']    
+    parser = DataParser(dataset_name)
+    parsed_data = parser.parse(examples)
+    builder = PromptBuilder(template)
+    prompt = builder.build_prompt(parsed_data[0])
+    fewshot_builder = PromptBuilder(fewshot_template)
+    fewshot_prompt = fewshot_builder.build_prompt(parsed_data[:2], setting='few-shot')
+    return prompt, fewshot_prompt
+    
+if __name__ == '__main__':
+    dataset_name = 'emoji'
+    print('Testing prompt builder...')
+    prompt, fewshot_prompt = test_prompt(dataset_name)
+    print('Prompt: {}'.format(prompt))
+    print('Few-shot prompt: {}'.format(fewshot_prompt))
