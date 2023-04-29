@@ -7,7 +7,7 @@ from utils.data_utils import DataParser
 
 def test_prompt(dataset_name):
     data = json.load(open('data/%s.json' % dataset_name, 'r'))
-    examples = data['examples']
+    examples = data['examples'][:10]
 
     # Testing the prompt in a one-shot setting
     template, fewshot_template = PROMPT_TEMPLATES[dataset_name]['zero-shot'], PROMPT_TEMPLATES[dataset_name]['few-shot']    
@@ -20,7 +20,7 @@ def test_prompt(dataset_name):
     return prompt, fewshot_prompt
     
 if __name__ == '__main__':
-    dataset_name = 'emoji'
+    dataset_name = 'winowhy'
     print('Testing prompt builder...')
     prompt, fewshot_prompt = test_prompt(dataset_name)
     print('Prompt: {}'.format(prompt))

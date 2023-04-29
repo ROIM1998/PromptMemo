@@ -1,19 +1,46 @@
 from typing import List, Dict, Tuple, Optional
 from tqdm import tqdm
 
-SUPPORTED_DATASETS = ['emoji', 'sarcasm', 'sentiment140', 'stanford_sentiment_treebank']
+SUPPORTED_DATASETS = ['emoji', 'hindu-knowledge', 'known-unknowns', 'bigbench', 'strange-stories', 'winowhy']
 
-def form_example_emoji(data):
+def form_example_simple_qa_choice(data):
     results = {}
-    results['emoji'] = data['input']
+    results['question'] = data['input']
     for i, k in enumerate(data['target_scores']):
         results['choice' + chr(ord('A') + i)] = k
-    results['labels'] = [data['target'], chr(ord('A') + list(data['target_scores']).index(data['target']))]
-    results['label'] = results['labels'][0]
+        if data['target_scores'][k] == 1:
+            results['labels'] = [k, chr(ord('A') + i)]
+            results['label'] = k
+    return results
+
+def form_example_contextual_qa_choice(data):
+    results = {}
+    results['context'], results['question'] = data['input'].split('\nQ:')
+    results['context'], results['quesiton'] = results['context'].strip(), results['question'].strip()
+    for i, k in enumerate(data['target_scores']):
+        results['choice' + chr(ord('A') + i)] = k
+        if data['target_scores'][k] == 1:
+            results['labels'] = [k, chr(ord('A') + i)]
+            results['label'] = k
+    return results
+
+def form_binary_reasoning(data):
+    results = {}
+    results['reasoning'] = data['input']
+    for i, k in enumerate(data['target_scores']):
+        results['choice' + chr(ord('A') + i)] = k
+        if data['target_scores'][k] == 1:
+            results['labels'] = [k, chr(ord('A') + i)]
+            results['label'] = k
     return results
 
 PARSE_FUNCS = {
-    'emoji': form_example_emoji,
+    'emoji': form_example_simple_qa_choice,
+    'hindu-knowledge': form_example_simple_qa_choice,
+    'known-unknowns': form_example_simple_qa_choice,
+    'bigbench': form_example_simple_qa_choice,
+    'strange-stories': form_example_contextual_qa_choice,
+    'winowhy': form_binary_reasoning,
 }
 
 class DataParser:
